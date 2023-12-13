@@ -2609,23 +2609,26 @@ function GetCurrentTypesString(slot)
 	end
 	
 	local itemdata = GetItemInfoInstant(slotinfo)
-	local classid = itemdata['classID']
-	local subclassid = itemdata['subclassID']
-	
-	if classid == 2 then
-		if subclassid == 0 or subclassid == 4 or subclassid == 7 or subclassid == 13 or subclassid == 15 then
-			return "1h"
-		elseif subclassid == 1 or subclassid == 5 or subclassid == 8 or subclassid == 6 or subclassid == 10 then
-			return "2h"
-		elseif subclassid == 2 or subclassid == 3 or subclassid == 18 then
-			return "ranged"
-		elseif subclassid == 19 then
-			return "wand"
+	if itemdata then
+		local classid = itemdata['classID']
+		local subclassid = itemdata['subclassID']
+		
+		if classid == 2 then
+			if subclassid == 0 or subclassid == 4 or subclassid == 7 or subclassid == 13 or subclassid == 15 then
+				return "1h"
+			elseif subclassid == 1 or subclassid == 5 or subclassid == 8 or subclassid == 6 or subclassid == 10 then
+				return "2h"
+			elseif subclassid == 2 or subclassid == 3 or subclassid == 18 then
+				return "ranged"
+			elseif subclassid == 19 then
+				return "wand"
+			end
+		elseif classid == 4 and subclassid == 6 then
+			return "shield"
 		end
-	elseif classid == 4 and subclassid == 6 then
-		return "shield"
 	end
-	
+	return nil
+
 end
 
 function GetWeaponTypeString()
