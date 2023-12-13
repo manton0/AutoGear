@@ -1,11 +1,7 @@
-#@retail@
-## Interface: 80200
-#@end-retail@
-#@non-retail@
-# ## Interface: 11302
-#@end-non-retail@
+## Interface: 33500
 ## Title: AutoGear
 ## Notes: Automatically chooses loot and equips gear
+## Version: 1.5
 
 AutoGear.lua
 ## SavedVariables: AutoGearDB
