@@ -1,4 +1,4 @@
-local agVersion = "1.5"
+local agVersion = GetAddOnMetadata("AutoGear", "Version") 
 
 local IsClassic = WOW_PROJECT_ID and WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
@@ -107,7 +107,7 @@ AutoGearDBDefaults = {
 	ReasonsInTooltips = false,
 	AlwaysCompareGear = GetCVarBool("alwaysCompareItems"),
 	UsePawn = false,
-	OverridePawnScale = true,
+	OverridePawnScale = false,
 	PawnScale = "",
 	AutoSellGreys = false,
 	AutoRepair = false,
@@ -1389,7 +1389,12 @@ local handleQL = function(self, elapsed)
 		 questLogRewardID = {}
 		 for i = 1, rewards do
 			local itemLink = GetQuestLogItemLink("choice", i)
-			if (not itemLink) then AutoGearPrint("AutoGear: No item link received from the server.", 0) end
+			if (not itemLink) then 
+				AutoGearPrint("AutoGear: No item link received from the server.", 0) 
+				-- reset as we did not get iteminfo
+				lastquest = 0
+				break
+			end
 			local _, _, Color, Ltype, id, Enchant, Gem1, Gem2, Gem3, Gem4, Suffix, Unique, LinkLvl, Name = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
 			questLogRewardID[i] = id
 		end
@@ -2756,16 +2761,33 @@ function AutoGearTooltipHook(tooltip)
 			HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b,
 			HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
 		end
+
 		tooltip:AddDoubleLine((tooltipItemInfo.PawnScaleName and "AutoGear: Pawn \""..PawnGetScaleColor(tooltipItemInfo.PawnScaleName)..tooltipItemInfo.PawnScaleName..FONT_COLOR_CODE_CLOSE.."\"" or "AutoGear").." score"..(comparing and "" or " (this)")..":",
 		(((tooltipItemInfo.Usable == 1) and "" or (RED_FONT_COLOR_CODE.."(won't equip) "..FONT_COLOR_CODE_CLOSE))..score) or "nil",
 		HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b,
 		scoreColor.r, scoreColor.g, scoreColor.b)
+
 		if (AutoGearDB.ReasonsInTooltips == true) and (not tooltipItemInfo.Usable) then
 			tooltip:AddDoubleLine("won't auto-equip",
 			tooltipItemInfo.reason,
 			RED_FONT_COLOR.r,RED_FONT_COLOR.g,RED_FONT_COLOR.b,
 			RED_FONT_COLOR.r,RED_FONT_COLOR.g,RED_FONT_COLOR.b)
 		end
+
+		if not comparing then
+			--print("equipped: " .. equippedScore .. " tooltip: " .. score)
+			--print("upgrade: " .. ((score - equippedScore) / math.abs(score)) * 100 .. "%")
+			local upgradeper = round(((score - equippedScore) / math.abs(score)) * 100, 2)
+			--print("upgrade: " .. upgradeper .. "%")
+			if upgradeper then
+				tooltip:AddDoubleLine("AutoGear Change:",
+				upgradeper.."%" or "nil",
+				HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b,
+				scoreColor.r, scoreColor.g, scoreColor.b)
+			end
+		end
+
+
 		--[[
 		if AutoGearDB.AllowedVerbosity >= 3 then
 			AutoGearPrint("AutoGear: The score of the item in the current tooltip is "..tostring(score),3)
@@ -2780,6 +2802,12 @@ GameTooltip:HookScript("OnTooltipSetItem", AutoGearTooltipHook)
 ShoppingTooltip1:HookScript("OnTooltipSetItem", AutoGearTooltipHook)
 ShoppingTooltip2:HookScript("OnTooltipSetItem", AutoGearTooltipHook)
 ItemRefTooltip:HookScript("OnTooltipSetItem", AutoGearTooltipHook)
+
+
+function round(num, numDecimalPlaces)
+	local mult = 10^(numDecimalPlaces or 0)
+	return math.floor(num * mult + 0.5) / mult
+  end
 
 function AutoGearMain()
 	if (GetTime() - tUpdate > 0.05) then

@@ -1,7 +1,7 @@
 ## Interface: 33500
 ## Title: AutoGear
 ## Notes: Automatically chooses loot and equips gear
-## Version: 1.5
+## Version: 1.6
 
 AutoGear.lua
-## SavedVariables: AutoGearDB
+## SavedVariablesPerCharacter: AutoGearDB
