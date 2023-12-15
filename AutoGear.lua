@@ -2357,9 +2357,6 @@ function ReadItemInfo(inventoryID, lootRollID, container, slot, questRewardIndex
 			
 			
 			--check for being a pattern or the like
-			if (string.find(text, "pattern:")) then cannotUse = 1 end
-			if (string.find(text, "plans:")) then cannotUse = 1 end
-			
 			--check for red text
 			local r, g, b, a = mytext:GetTextColor()
 			if ((g==0 or r/g>3) and (b==0 or r/b>3) and math.abs(b-g)<0.1 and r>0.5 and mytext:GetText()) then --this is red text
@@ -2403,6 +2400,11 @@ function ReadItemInfo(inventoryID, lootRollID, container, slot, questRewardIndex
 					end
 				end
 			end
+		end
+
+		if text then
+			if (string.find(text, "pattern:")) then cannotUse = 1 end
+			if (string.find(text, "plans:")) then cannotUse = 1 end
 		end
 		
 		
@@ -2774,7 +2776,7 @@ function AutoGearTooltipHook(tooltip)
 			RED_FONT_COLOR.r,RED_FONT_COLOR.g,RED_FONT_COLOR.b)
 		end
 
-		if not comparing then
+		if not comparing and equippedScore > 0 then
 			--print("equipped: " .. equippedScore .. " tooltip: " .. score)
 			--print("upgrade: " .. ((score - equippedScore) / math.abs(score)) * 100 .. "%")
 			local upgradeper = round(((score - equippedScore) / math.abs(score)) * 100, 2)
