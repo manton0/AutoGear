@@ -1,4 +1,3 @@
-local agVersion = GetAddOnMetadata("AutoGear", "Version") 
 
 local IsClassic = WOW_PROJECT_ID and WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
@@ -11,6 +10,7 @@ local tUpdate = 0
 local dataAvailable = nil
 local shouldPrintHelp = false
 local maxPlayerLevel = MAX_PLAYER_LEVEL_TABLE[GetExpansionLevel()]
+local firstLoad = true
 
 local bestRewardIcon = nil
 
@@ -42,7 +42,19 @@ end
 function AutoGearPrint(text, verbosity)
 	if verbosity == nil then verbosity = 0 end
 	if (AutoGearDB.AllowedVerbosity == nil) or (verbosity <= AutoGearDB.AllowedVerbosity) then
-		print(text)
+		if (AutoGearDB.ChatOutput == 1) then
+			ChatFrame1:AddMessage(text)
+		elseif (AutoGearDB.ChatOutput == 2) then
+			ChatFrame2:AddMessage(text)
+		elseif (AutoGearDB.ChatOutput == 3) then
+			ChatFrame3:AddMessage(text)
+		elseif (AutoGearDB.ChatOutput == 4) then
+			ChatFrame4:AddMessage(text)
+		elseif (AutoGearDB.ChatOutput == 5) then
+			ChatFrame5:AddMessage(text)
+		elseif (AutoGearDB.ChatOutput == 6) then
+			ChatFrame6:AddMessage(text)
+		end
 	end
 end
 
@@ -107,11 +119,13 @@ AutoGearDBDefaults = {
 	ReasonsInTooltips = false,
 	AlwaysCompareGear = GetCVarBool("alwaysCompareItems"),
 	UsePawn = false,
-	OverridePawnScale = false,
+	OverridePawnScale = true,
 	PawnScale = "",
 	AutoSellGreys = false,
 	AutoRepair = false,
-	AllowedVerbosity = 2
+	AllowedVerbosity = 2,
+	ChatOutput = 2
+	
 }
 
 InitializeAutoGearDB(AutoGearDBDefaults)
@@ -1175,6 +1189,16 @@ optionsMenu:SetScript("OnEvent", function (self, event, arg1, ...)
 				}
 			},
 			{
+				["option"] = "ChatOutput",
+				["cliCommands"] = { "ChatOutput" },
+				["cliTrue"] = { "enable", "on", "start" },
+				["cliFalse"] = { "disable", "off", "stop" },
+				["label"] = "Chat tab output",
+				["description"] = "Overrides the default chat tab to output in desired chat tab instead",
+				["toggleDescriptionTrue"] = "Chat tab output is now enabled.  AutoGear will use the Chat tab output in the dropdown for evaluating gear.",
+				["toggleDescriptionFalse"] = "Chat tab output is now disabled.  AutoGear will use the default chat tab.",
+			},
+			{
 				["option"] = "UsePawn",
 				["cliCommands"] = { "pawn", "usepawn" },
 				["cliTrue"] = { "enable", "on", "start" },
@@ -1239,10 +1263,14 @@ SlashCmdList["AutoGear"] = function(msg)
 		AutoGearToggleEnabled(false)
 	elseif (param1 == "scan") then
 		AutoGearScan()
+	elseif (param1 == "pawnspec") then
+		AutoGearPrint("Addon is looking for "..AutoGearGetPawnScaleName())
 	elseif (param1 == "spec") then
 		AutoGearPrint("AutoGear: Looks like you are "..AutoGearGetSpec().."."..((AutoGearDB.UsePawn or AutoGearDB.Override) and ("  However, AutoGear is using "..(AutoGearDB.UsePawn and "Pawn" or "\""..AutoGearDB.OverrideSpec.."\"").." for gear evaluation due to the \""..(AutoGearDB.UsePawn and "use Pawn to evaluate upgrades" or "override specialization").."\" option.") or ""), 0)
 	elseif (param1 == "verbosity") or (param1 == "allowedverbosity") then
 		SetAllowedVerbosity(param2)
+	elseif (param1 == "chat") or (param1 == "chatoutput") then
+		SetChatOutput(param2)
 	elseif ((param1 == "setspec") or
 	(param1 == "overridespec") or
 	(param1 == "overridespecialization") or
@@ -1370,6 +1398,27 @@ end
 
 
 
+function SetChatOutput(ChatOutput)
+	ChatOutput = tonumber(ChatOutput)
+	if type(ChatOutput) ~= "number" then
+		AutoGearPrint(AutoGearPrint("AutoGear is printing in chat tab named"..GetChatWindowInfo(AutoGearDB.ChatOutput)))
+		-- AutoGearPrint("AutoGear: The current chat output tab is "..tostring(AutoGearDB.ChatOutput).." ("..GetChatOutputName(AutoGearDB.ChatOutput).."). Valid levels are: 0 ("..GetChatOutputName(0).."), 1 ("..GetChatOutputName(1).."), 2 ("..GetChatOutputName(2).."), 3 ("..GetChatOutputName(3)..").", 0)
+		return
+	end
+
+	if ChatOutput < 0 or ChatOutput > 7 then
+		AutoGearPrint("AutoGear can only output to the first 6 chat tabs")
+		return
+	else
+		AutoGearPrint("AutoGear used to be printing in "..GetChatWindowInfo(AutoGearDB.ChatOutput).." and is now printing in"..GetChatWindowInfo(ChatOutput))
+		AutoGearDB.ChatOutput = ChatOutput
+		AutoGearPrint("AutoGear will now be printing in "..GetChatWindowInfo(ChatOutput))
+		-- AutoGearPrint("AutoGear: Allowed verbosity level is now: "..tostring(AutoGearDB.ChatOutput).." ("..GetChatOutputName(AutoGearDB.ChatOutput)..").", 0)
+	end
+end
+
+
+
 --funny hook for quest display
 local interval = 0.25
 local lasttimer = 0
@@ -1395,6 +1444,7 @@ local handleQL = function(self, elapsed)
 				lastquest = 0
 				break
 			end
+			if (not itemLink) then AutoGearPrint("AutoGear: No item link received from the server.", 0) end
 			local _, _, Color, Ltype, id, Enchant, Gem1, Gem2, Gem3, Gem4, Suffix, Unique, LinkLvl, Name = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
 			questLogRewardID[i] = id
 		end
@@ -2357,6 +2407,9 @@ function ReadItemInfo(inventoryID, lootRollID, container, slot, questRewardIndex
 			
 			
 			--check for being a pattern or the like
+			if (string.find(text, "pattern:")) then cannotUse = 1 end
+			if (string.find(text, "plans:")) then cannotUse = 1 end
+			
 			--check for red text
 			local r, g, b, a = mytext:GetTextColor()
 			if ((g==0 or r/g>3) and (b==0 or r/b>3) and math.abs(b-g)<0.1 and r>0.5 and mytext:GetText()) then --this is red text
@@ -2479,6 +2532,7 @@ function AutoGearGetPawnScaleName()
 	if AutoGearDB.Override then
 
 		-- Try to find a visible scale matching the full AutoGearDB.OverrideSpec string (example: "Paladin: Protection")
+		-- or for Ascension: "ASCENSION: Strength"
 		for ScaleName, Scale in pairs(PawnCommon.Scales) do
 			if PawnIsScaleVisible(ScaleName) and AutoGearDB.OverrideSpec and AutoGearDB.OverrideSpec == ScaleName then
 				return ScaleName
@@ -2486,6 +2540,7 @@ function AutoGearGetPawnScaleName()
 		end
 	
 		-- Try to find a visible scale matching just the override spec name (example: "Protection")
+		-- or for Ascension: "Strength"
 		for ScaleName, Scale in pairs(PawnCommon.Scales) do
 			if PawnIsScaleVisible(ScaleName) and overrideSpec == ScaleName then
 				return ScaleName
@@ -2493,6 +2548,7 @@ function AutoGearGetPawnScaleName()
 		end
 		
 		-- Try to find a visible scale matching just the override class name (example: "Paladin")
+		-- or for Ascension: "ASCENSION"
 		for ScaleName, Scale in pairs(PawnCommon.Scales) do
 			if PawnIsScaleVisible(ScaleName) and overrideClass == ScaleName then
 				return ScaleName
@@ -2500,6 +2556,7 @@ function AutoGearGetPawnScaleName()
 		end
 		
 		-- Try to find any scale matching the full AutoGearDB.OverrideSpec string (example: "Paladin: Protection")
+		-- or for Ascension: any "ASCENSION: Strength"
 		for ScaleName, Scale in pairs(PawnCommon.Scales) do
 			if AutoGearDB.OverrideSpec and AutoGearDB.OverrideSpec == ScaleName then
 				return ScaleName
@@ -2507,6 +2564,7 @@ function AutoGearGetPawnScaleName()
 		end
 		
 		-- Try to find any scale matching just the override spec name (example: "Protection")
+		-- or for Ascension: any "Strength"
 		for ScaleName, Scale in pairs(PawnCommon.Scales) do
 			if overrideSpec == ScaleName then
 				return ScaleName
@@ -2514,6 +2572,7 @@ function AutoGearGetPawnScaleName()
 		end
 		
 		-- Try to find any scale matching just the override class name (example: "Paladin")
+		-- or for Ascension: any "ASCENSION"
 		for ScaleName, Scale in pairs(PawnCommon.Scales) do
 			if overrideClass == ScaleName then
 				return ScaleName
@@ -2523,8 +2582,113 @@ function AutoGearGetPawnScaleName()
 	end
 	
 	local realClassAndSpec = realClass..": "..realSpec
+
+----------------------------------------------- \/ Ascension ones \/ -------------------------------------------------
+
+
+
+		--CA_GetActiveSpecId()+1
+		--/dump CharacterAdvancementSideBarSpecListScrollFrameButton2:GetText(),
+		-- /dump CharacterAdvancementSideBarSpecListScrollFrameButton3:GetText()
+
+
+	--if CharacterAdvancementSideBarSpecListScrollFrameButton1:GetText() == nil then
+
+	if firstLoad then
+		Collections:Show()
+		CollectionsPoolFrameCollectionTabTemplate1:Click()
+		CharacterAdvancementSideBarPoolFrameTabSystemTopTabTemplate2:Click()
+		CharacterAdvancementCloseButton:Click()
+		firstLoad = false
+	end
+
+ 	local activeSpecNumber = CA_GetActiveSpecId()+1
+	local specName
+ 	if activeSpecNumber == 1 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton1:GetText()
+	elseif activeSpecNumber == 2 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton2:GetText()
+	elseif activeSpecNumber == 3 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton3:GetText()
+	elseif activeSpecNumber == 4 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton4:GetText()
+	elseif activeSpecNumber == 5 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton5:GetText()
+	elseif activeSpecNumber == 6 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton6:GetText()
+	elseif activeSpecNumber == 7 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton7:GetText()
+	elseif activeSpecNumber == 8 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton8:GetText()
+	elseif activeSpecNumber == 9 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton9:GetText()
+	elseif activeSpecNumber == 10 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton10:GetText()
+	elseif activeSpecNumber == 11 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton11:GetText()
+	elseif activeSpecNumber == 12 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton12:GetText()
+	elseif activeSpecNumber == 13 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton13:GetText()
+	elseif activeSpecNumber == 14 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton14:GetText()
+	elseif activeSpecNumber == 15 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton15:GetText()
+	elseif activeSpecNumber == 16 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton16:GetText()
+	elseif activeSpecNumber == 17 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton17:GetText()
+	elseif activeSpecNumber == 18 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton18:GetText()
+	elseif activeSpecNumber == 19 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton19:GetText()
+	elseif activeSpecNumber == 20 then
+		specName = CharacterAdvancementSideBarSpecListScrollFrameButton20:GetText()
+	end
+
+	local legendaryEnchantName
+	tbl = MysticEnchantUtil.GetAppliedEnchantCountByQuality("player")[5]
+	if tbl then
+		for k, v in pairs(tbl) do
+			legendaryEnchantName = GetSpellInfo(k)
+		end
+	end
+	
+	-- Try to find a visible scale matching the current spec name (example: "Melee Hunter")
+	for ScaleName, Scale in pairs(PawnCommon.Scales) do
+		if PawnIsScaleVisible(ScaleName) and specName == ScaleName then
+			return ScaleName
+		end
+	end
+	
+	-- Try to find a visible scale matching the current Legendary enchant name (example: "Thunderslam")
+	for ScaleName, Scale in pairs(PawnCommon.Scales) do
+		if PawnIsScaleVisible(ScaleName) and legendaryEnchantName == ScaleName then
+			return ScaleName
+		end
+	end
+
+	--- Now for non visible:
+
+	-- Try to find any scale matching the current spec name (example: "Melee Hunter")
+	for ScaleName, Scale in pairs(PawnCommon.Scales) do
+		if PawnIsScaleVisible(ScaleName) and specName == ScaleName then
+			return ScaleName
+		end
+	end
+	
+	-- Try to find any scale matching the current Legendary enchant name (example: "Thunderslam")
+	for ScaleName, Scale in pairs(PawnCommon.Scales) do
+		if PawnIsScaleVisible(ScaleName) and legendaryEnchantName == ScaleName then
+			return ScaleName
+		end
+	end
+
+----------------------------------------------- ^^ Ascension ones ^^ -------------------------------------------------
+
 	
 	-- Try to find a visible scale matching the real class and spec string (example: "Warrior: Arms")
+	-- or for Ascension: a visible "ASCENSION: Strength"
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if PawnIsScaleVisible(ScaleName) and realClassAndSpec == ScaleName then
 			return ScaleName
@@ -2532,6 +2696,7 @@ function AutoGearGetPawnScaleName()
 	end
 
 	-- Try to find a visible scale matching just the real spec name (example: "Arms")
+	-- or for Ascension: a visible "Strength"
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if PawnIsScaleVisible(ScaleName) and realSpec == ScaleName then
 			return ScaleName
@@ -2539,6 +2704,7 @@ function AutoGearGetPawnScaleName()
 	end
 
 	-- Try to find a visible scale matching just the real class name (example: "Warrior")
+	-- or for Ascension: a visible "ASCENSION"
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if PawnIsScaleVisible(ScaleName) and realClass == ScaleName then
 			return ScaleName
@@ -2546,6 +2712,7 @@ function AutoGearGetPawnScaleName()
 	end
 	
 	-- Try to find any scale matching the real class and spec string (example: "Warrior: Arms")
+	-- or for Ascension: any "ASCENSION: Strength"
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if realClassAndSpec == ScaleName then
 			return ScaleName
@@ -2553,6 +2720,7 @@ function AutoGearGetPawnScaleName()
 	end
 	
 	-- Try to find any scale matching just the real spec name (example: "Arms")
+	-- or for Ascension: any "Strength"
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if realSpec == ScaleName then
 			return ScaleName
@@ -2560,6 +2728,7 @@ function AutoGearGetPawnScaleName()
 	end
 	
 	-- Try to find any scale matching just the real class name (example: "Warrior")
+	-- or for Ascension: any "ASCENSION"
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if realClass == ScaleName then
 			return ScaleName
@@ -2567,6 +2736,7 @@ function AutoGearGetPawnScaleName()
 	end
 
 	-- Try to find the matching class
+	-- or for Ascension: "HERO"
 	for ScaleName, Scale in pairs(PawnCommon.Scales) do
 		if PawnIsScaleVisible(ScaleName) and Scale.ClassID == ClassID and Scale.Provider ~= nil then
 			return ScaleName
@@ -2763,12 +2933,10 @@ function AutoGearTooltipHook(tooltip)
 			HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b,
 			HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
 		end
-
 		tooltip:AddDoubleLine((tooltipItemInfo.PawnScaleName and "AutoGear: Pawn \""..PawnGetScaleColor(tooltipItemInfo.PawnScaleName)..tooltipItemInfo.PawnScaleName..FONT_COLOR_CODE_CLOSE.."\"" or "AutoGear").." score"..(comparing and "" or " (this)")..":",
 		(((tooltipItemInfo.Usable == 1) and "" or (RED_FONT_COLOR_CODE.."(won't equip) "..FONT_COLOR_CODE_CLOSE))..score) or "nil",
 		HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b,
 		scoreColor.r, scoreColor.g, scoreColor.b)
-
 		if (AutoGearDB.ReasonsInTooltips == true) and (not tooltipItemInfo.Usable) then
 			tooltip:AddDoubleLine("won't auto-equip",
 			tooltipItemInfo.reason,
