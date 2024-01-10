@@ -1,3 +1,4 @@
+local agVersion = GetAddOnMetadata("AutoGear", "Version") 
 
 local IsClassic = WOW_PROJECT_ID and WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
