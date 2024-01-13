@@ -1402,7 +1402,7 @@ end
 function SetChatOutput(ChatOutput)
 	ChatOutput = tonumber(ChatOutput)
 	if type(ChatOutput) ~= "number" then
-		AutoGearPrint(AutoGearPrint("AutoGear is printing in chat tab named"..GetChatWindowInfo(AutoGearDB.ChatOutput)))
+		AutoGearPrint("AutoGear is printing in chat tab named"..GetChatWindowInfo(AutoGearDB.ChatOutput))
 		-- AutoGearPrint("AutoGear: The current chat output tab is "..tostring(AutoGearDB.ChatOutput).." ("..GetChatOutputName(AutoGearDB.ChatOutput).."). Valid levels are: 0 ("..GetChatOutputName(0).."), 1 ("..GetChatOutputName(1).."), 2 ("..GetChatOutputName(2).."), 3 ("..GetChatOutputName(3)..").", 0)
 		return
 	end
