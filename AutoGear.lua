@@ -2598,7 +2598,7 @@ function AutoGearGetPawnScaleName()
 	if firstLoad then
 		Collections:Show()
 		CollectionsPoolFrameCollectionTabTemplate1:Click()
-		CharacterAdvancementSideBarPoolFrameTabSystemTopTabTemplate2:Click()
+		CharacterAdvancementSideBarPoolFrameTabSystemTopTabOldStyleTemplate2:Click()
 		CharacterAdvancementCloseButton:Click()
 		firstLoad = false
 	end
@@ -2909,8 +2909,8 @@ function AutoGearTooltipHook(tooltip)
 	if (not AutoGearDB.ScoreInTooltips) then return end
 	if (not weighting) then AutoGearSetStatWeights() end
 	local name, link = tooltip:GetItem()
-	if not link then
-		AutoGearPrint("AutoGear: No item link for "..name.." on "..tooltip:GetName(),3)
+	if not link or not name then
+		AutoGearPrint("AutoGear: No item link for or name on "..tooltip:GetName(),3)
 		return
 	end
 	local tooltipItemInfo = ReadItemInfo(nil,nil,nil,nil,nil,link)
