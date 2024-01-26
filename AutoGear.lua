@@ -1831,7 +1831,7 @@ function AutoGearScanBags(lootRollItemID, lootRollID, questRewardID, questLogRew
 				equippedInfo = ReadItemInfo(i)
 				equippedScore = DetermineItemScore(equippedInfo, weighting)
 				if ((not best[i].equipped) and best[i].score > equippedScore) then
-					AutoGearPrint("AutoGear: "..(best[i].info.Name or "nothing").." ("..string.format("%.2f", best[i].score)..") was determined to be better than "..(equippedInfo.Name or "nothing").." ("..string.format("%.2f", equippedScore)..").  "..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
+					AutoGearPrint("AutoGear: "..(best[i].info.Name or "nothing").." ("..string.format("%.2f", best[i].score)..") was determined to be better than "..(equippedInfo.Name or "nothing").." ("..string.format("%.2f", equippedScore)..")"..((equippedInfo.PawnItemValue and " for pawn: "..AutoGearGetPawnScaleName()..". ") or (". ")) ..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
 					PrintItem(best[i].info)
 					PrintItem(equippedInfo)
 					anythingBetter = 1
@@ -1881,7 +1881,7 @@ function AutoGearScanBags(lootRollItemID, lootRollID, questRewardID, questLogRew
 					if (IsTwoHandEquipped()) then
 						local equippedMain = ReadItemInfo(16)
 						local mainScore = DetermineItemScore(equippedMain, weighting)
-						AutoGearPrint("AutoGear: "..(best[16].info.Name or "nothing").." ("..string.format("%.2f", best[16].score)..") combined with "..(best[17].info.Name or "nothing").." ("..string.format("%.2f", best[17].score)..") was determined to be better than "..(equippedMain.Name or "nothing").." ("..string.format("%.2f", mainScore)..").  "..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
+						AutoGearPrint("AutoGear: "..(best[16].info.Name or "nothing").." ("..string.format("%.2f", best[16].score)..") combined with "..(best[17].info.Name or "nothing").." ("..string.format("%.2f", best[17].score)..") was determined to be better than "..(equippedMain.Name or "nothing").." ("..string.format("%.2f", mainScore)..")"..((equippedMain.PawnItemValue and " for pawn: "..AutoGearGetPawnScaleName()..". ") or (". ")) ..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
 						PrintItem(best[16].info)
 						PrintItem(best[17].info)
 						PrintItem(equippedMain)
@@ -1890,7 +1890,7 @@ function AutoGearScanBags(lootRollItemID, lootRollID, questRewardID, questLogRew
 						local mainScore = DetermineItemScore(equippedMain, weighting)
 						local equippedOff = ReadItemInfo(17)
 						local offScore = DetermineItemScore(equippedOff, weighting)
-						AutoGearPrint("AutoGear: "..(best[16].info.Name or "nothing").." ("..string.format("%.2f", best[16].score)..") combined with "..(best[17].info.Name or "nothing").." ("..string.format("%.2f", best[17].score)..") was determined to be better than "..(equippedMain.Name or "nothing").." ("..string.format("%.2f", mainScore)..") combined with "..(equippedOff.Name or "nothing").." ("..string.format("%.2f", offScore)..").  "..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
+						AutoGearPrint("AutoGear: "..(best[16].info.Name or "nothing").." ("..string.format("%.2f", best[16].score)..") combined with "..(best[17].info.Name or "nothing").." ("..string.format("%.2f", best[17].score)..") was determined to be better than "..(equippedMain.Name or "nothing").." ("..string.format("%.2f", mainScore)..") combined with "..(equippedOff.Name or "nothing").." ("..string.format("%.2f", offScore)..")"..((equippedMain.PawnItemValue and " for pawn: "..AutoGearGetPawnScaleName()..". ") or (". ")) ..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
 						PrintItem(best[16].info)
 						PrintItem(best[17].info)
 						PrintItem(equippedMain)
@@ -1901,7 +1901,7 @@ function AutoGearScanBags(lootRollItemID, lootRollID, questRewardID, questLogRew
 					if (offSwap) then i = 17 end
 					local equippedInfo = ReadItemInfo(i)
 					local equippedScore = DetermineItemScore(equippedInfo, weighting)
-					AutoGearPrint("AutoGear: "..(best[i].info.Name or "nothing").." ("..string.format("%.2f", best[i].score)..") was determined to be better than "..(equippedInfo.Name or "nothing").." ("..string.format("%.2f", equippedScore)..").  "..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
+					AutoGearPrint("AutoGear: "..(best[i].info.Name or "nothing").." ("..string.format("%.2f", best[i].score)..") was determined to be better than "..(equippedInfo.Name or "nothing").." ("..string.format("%.2f", equippedScore)..")"..((equippedInfo.PawnItemValue and " for pawn: "..AutoGearGetPawnScaleName()..". ") or (". ")) ..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
 					PrintItem(best[i].info)
 					PrintItem(equippedInfo)
 				end
@@ -1912,7 +1912,7 @@ function AutoGearScanBags(lootRollItemID, lootRollID, questRewardID, questLogRew
 				local mainScore = DetermineItemScore(equippedMain, weighting)
 				local equippedOff = ReadItemInfo(17)
 				local offScore = DetermineItemScore(equippedOff, weighting)
-				AutoGearPrint("AutoGear: "..(best[19].info.Name or "nothing").." ("..string.format("%.2f", best[19].score)..") was determined to be better than "..(equippedMain.Name or "nothing").." ("..string.format("%.2f", mainScore)..") combined with "..(equippedOff.Name or "nothing").." ("..string.format("%.2f", offScore)..").  "..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
+				AutoGearPrint("AutoGear: "..(best[19].info.Name or "nothing").." ("..string.format("%.2f", best[19].score)..") was determined to be better than "..(equippedMain.Name or "nothing").." ("..string.format("%.2f", mainScore)..") combined with "..(equippedOff.Name or "nothing").." ("..string.format("%.2f", offScore)..")"..((equippedMain.PawnItemValue and " for pawn: "..AutoGearGetPawnScaleName()..". ") or (". ")) ..((AutoGearDB.Enabled == true) and "Equipping." or "Would equip if automatic gear equipping was enabled."), 1)
 				PrintItem(best[19].info)
 				PrintItem(equippedMain)
 				PrintItem(equippedOff)
